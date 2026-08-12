@@ -7,3 +7,7 @@ const std = @import("std");
 pub fn main() !void {
     std.debug.print("Hey lets start brainfuck!\n", .{});
 }
+
+test {
+    _ = @import("Lexer.zig");
+}
