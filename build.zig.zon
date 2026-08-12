@@ -1,0 +1,19 @@
+// SPDX-FileCopyrightText: 2026 Iyad
+//
+// SPDX-License-Identifier: Apache-2.0
+
+.{
+    .name = .brainfuck,
+    .version = "0.0.0",
+    .fingerprint = 0x8616795e15c63fbc, // Changing this has security and trust implications.
+    .minimum_zig_version = "0.16.0",
+    .dependencies = .{},
+    .paths = .{
+        "build.zig",
+        "build.zig.zon",
+        "src",
+        "LICENSE",
+        "LICENSES",
+        "README.md",
+    },
+}

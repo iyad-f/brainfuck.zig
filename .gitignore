@@ -1,0 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Iyad
+#
+# SPDX-License-Identifier: Apache-2.0
+
+.zig-cache/
+zig-out/
