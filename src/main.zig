@@ -10,4 +10,6 @@ pub fn main() !void {
 
 test {
     _ = @import("Lexer.zig");
+    _ = @import("Ast.zig");
+    _ = @import("Parser.zig");
 }
