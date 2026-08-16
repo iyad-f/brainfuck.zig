@@ -5,6 +5,11 @@
 version = 1
 
 [[annotations]]
-path = "examples/**.bf"
+path = "examples/hello.bf"
 SPDX-FileCopyrightText = "2026 Iyad"
 SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = "examples/mandelbrot.bf"
+SPDX-FileCopyrightText = "Erik Bosman"
+SPDX-License-Identifier = "LicenseRef-NoLicense"
