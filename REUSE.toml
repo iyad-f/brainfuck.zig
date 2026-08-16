@@ -1,0 +1,10 @@
+# SPDX-FileCopyrightText: 2026 Iyad
+#
+# SPDX-License-Identifier: Apache-2.0
+
+version = 1
+
+[[annotations]]
+path = "examples/**.bf"
+SPDX-FileCopyrightText = "2026 Iyad"
+SPDX-License-Identifier = "Apache-2.0"
