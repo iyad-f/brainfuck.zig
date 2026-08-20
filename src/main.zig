@@ -5,18 +5,23 @@
 const std = @import("std");
 const process = std.process;
 const Io = std.Io;
+const cli = @import("cli.zig");
 const Lexer = @import("Lexer.zig");
 const Parser = @import("Parser.zig");
 const Interpreter = @import("Interpreter.zig");
+const Lowering = @import("Lowering.zig");
+const IrInterpreter = @import("IrInterpreter.zig");
 
 pub fn main(init: process.Init) void {
-    var args = init.minimal.args.iterate();
-    _ = args.skip();
+    const args = init.minimal.args.toSlice(init.arena.allocator()) catch |err|
+        process.fatal("cannot read arguments: {t}", .{err});
 
-    const path = args.next() orelse process.fatal(
-        "usage: bf <file.bf>",
-        .{},
-    );
+    const parsed = cli.parse(args) catch |err| switch (err) {
+        error.MissingPath => process.fatal("usage: bf [--ir] <file.bf>", .{}),
+        error.UnknownOption => process.fatal("unknown option", .{}),
+        error.UnexpectedArgument => process.fatal("unexpected argument", .{}),
+    };
+    const path = parsed.path;
 
     const io = init.io;
     const gpa = init.gpa;
@@ -45,16 +50,32 @@ pub fn main(init: process.Init) void {
     var stdout_writer = Io.File.stdout().writer(io, &stdout_buffer);
     const stdout = &stdout_writer.interface;
 
-    var interpreter = Interpreter.init(stdin, stdout);
-    interpreter.run(ast) catch |err| switch (err) {
+    if (parsed.options.use_ir) {
+        var ir = Lowering.lower(gpa, ast) catch |err| switch (err) {
+            error.OutOfMemory => process.fatal("out of memory", .{}),
+        };
+        defer ir.deinit(gpa);
+
+        var interpreter = IrInterpreter.init(stdin, stdout);
+        interpreter.run(ir) catch |err| handleInterpreterError(err);
+    } else {
+        var interpreter = Interpreter.init(stdin, stdout);
+        interpreter.run(ast) catch |err| handleInterpreterError(err);
+    }
+}
+
+/// Reports a run error and exits.
+fn handleInterpreterError(err: (Interpreter.Error || IrInterpreter.Error)) noreturn {
+    switch (err) {
         error.PointerOverflow => process.fatal("the pointer moved past the last cell", .{}),
         error.PointerUnderflow => process.fatal("the pointer moved before the first cell", .{}),
         error.ReadFailed => process.fatal("reading input failed", .{}),
         error.WriteFailed => process.fatal("writing output failed", .{}),
-    };
+    }
 }
 
 test {
+    _ = @import("cli.zig");
     _ = @import("Lexer.zig");
     _ = @import("Ast.zig");
     _ = @import("Parser.zig");
