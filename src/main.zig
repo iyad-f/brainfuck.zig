@@ -59,4 +59,7 @@ test {
     _ = @import("Ast.zig");
     _ = @import("Parser.zig");
     _ = @import("Interpreter.zig");
+    _ = @import("Ir.zig");
+    _ = @import("Lowering.zig");
+    _ = @import("IrInterpreter.zig");
 }
