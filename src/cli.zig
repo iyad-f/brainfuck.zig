@@ -21,6 +21,9 @@ pub const Parsed = struct {
 pub const Options = struct {
     /// Runs the program through the ir interpreter.
     use_ir: bool = false,
+
+    /// Skips the optimization passes, running the ir exactly as lowered.
+    no_opt: bool = false,
 };
 
 /// Errors `parse` can return.
@@ -47,7 +50,12 @@ pub fn parse(args: []const [:0]const u8) ParseError!Parsed {
 
     for (args[1..]) |arg| {
         if (mem.startsWith(u8, arg, "-")) {
-            if (mem.eql(u8, arg, "--ir")) options.use_ir = true else return error.UnknownOption;
+            if (mem.eql(u8, arg, "--ir"))
+                options.use_ir = true
+            else if (mem.eql(u8, arg, "--no-opt"))
+                options.no_opt = true
+            else
+                return error.UnknownOption;
         } else {
             if (path != null) return error.UnexpectedArgument;
             path = arg;
@@ -99,4 +107,11 @@ test "second path is an error" {
 
 test "unrecognized option is an error" {
     try expectParseError(error.UnknownOption, &.{ "bf", "--unknown", "a.bf" });
+}
+
+test "no-opt is parsed" {
+    try expectParsed(
+        .{ .path = "a.bf", .options = .{ .use_ir = true, .no_opt = true } },
+        &.{ "bf", "--ir", "--no-opt", "a.bf" },
+    );
 }

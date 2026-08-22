@@ -63,7 +63,7 @@ pub fn run(self: *IrInterpreter, ir: Ir) Error!void {
                 self._pointer = @intCast(target);
             },
             .add => |n| {
-                self._tape[self._pointer] +%= @bitCast(n);
+                self._tape[self._pointer] +%= n;
             },
             .read => self._tape[self._pointer] = self._reader.takeByte() catch |err|
                 switch (err) {
@@ -85,7 +85,7 @@ pub fn run(self: *IrInterpreter, ir: Ir) Error!void {
     }
 }
 
-fn expectOutput(expected: []const u8, instructions: []const Ir.Instruction, input: []const u8) !void {
+fn expectOutput(expected: []const u8, instructions: []Ir.Instruction, input: []const u8) !void {
     var reader = Io.Reader.fixed(input);
     var buffer: [256]u8 = undefined;
     var writer = Io.Writer.fixed(&buffer);
@@ -96,7 +96,7 @@ fn expectOutput(expected: []const u8, instructions: []const Ir.Instruction, inpu
     try testing.expectEqualStrings(expected, buffer[0..writer.end]);
 }
 
-fn expectError(expected: Error, instructions: []const Ir.Instruction) !void {
+fn expectError(expected: Error, instructions: []Ir.Instruction) !void {
     var reader = Io.Reader.fixed("");
     var buffer: [256]u8 = undefined;
     var writer = Io.Writer.fixed(&buffer);
@@ -110,72 +110,79 @@ fn expectError(expected: Error, instructions: []const Ir.Instruction) !void {
 }
 
 test "add applies its amount to the cell" {
+    var instructions = [_]Ir.Instruction{
+        .{ .add = 3 },
+        .write,
+    };
     try expectOutput(
         &.{3},
-        &.{
-            .{ .add = 3 },
-            .write,
-        },
+        &instructions,
         "",
     );
 }
 
 test "add wraps on overflow" {
+    var instructions = [_]Ir.Instruction{
+        .{ .add = 253 },
+        .write,
+    };
     try expectOutput(
         &.{253},
-        &.{
-            .{ .add = -3 },
-            .write,
-        },
+        &instructions,
         "",
     );
 }
 
 test "move applies its amount to the pointer" {
+    var instructions = [_]Ir.Instruction{
+        .{ .move = 2 },
+        .{ .add = 7 },
+        .write,
+    };
     try expectOutput(
         &.{7},
-        &.{
-            .{ .move = 2 },
-            .{ .add = 7 },
-            .write,
-        },
+        &instructions,
         "",
     );
 }
 
 test "reading at end of input gives zero" {
+    var instructions = [_]Ir.Instruction{
+        .read,
+        .write,
+    };
     try expectOutput(
         &.{0},
-        &.{
-            .read,
-            .write,
-        },
+        &instructions,
         "",
     );
 }
 
 test "loop repeats until the cell is zero" {
+    var instructions = [_]Ir.Instruction{
+        .{ .add = 3 },
+        .{ .jump_if_zero = 7 },
+        .{ .move = 1 },
+        .{ .add = 2 },
+        .{ .move = -1 },
+        .{ .add = 255 },
+        .{ .jump_if_nonzero = 2 },
+        .{ .move = 1 },
+        .write,
+    };
     try expectOutput(
         &.{6},
-        &.{
-            .{ .add = 3 },
-            .{ .jump_if_zero = 7 },
-            .{ .move = 1 },
-            .{ .add = 2 },
-            .{ .move = -1 },
-            .{ .add = -1 },
-            .{ .jump_if_nonzero = 2 },
-            .{ .move = 1 },
-            .write,
-        },
+        &instructions,
         "",
     );
 }
 
 test "moving past the last cell is an error" {
-    try expectError(error.PointerOverflow, &.{.{ .move = 40000 }});
+    var instructions = [_]Ir.Instruction{.{ .move = 40000 }};
+    try expectError(error.PointerOverflow, &instructions);
 }
 
 test "moving before the first cell is an error" {
-    try expectError(error.PointerUnderflow, &.{.{ .move = -1 }});
+    var instructions = [_]Ir.Instruction{.{ .move = -1 }};
+    try expectError(error.PointerUnderflow, &instructions);
 }

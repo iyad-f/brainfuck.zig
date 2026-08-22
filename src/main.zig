@@ -11,6 +11,7 @@ const Parser = @import("Parser.zig");
 const Interpreter = @import("Interpreter.zig");
 const Lowering = @import("Lowering.zig");
 const IrInterpreter = @import("IrInterpreter.zig");
+const foldRuns = @import("passes/fold_runs.zig").foldRuns;
 
 pub fn main(init: process.Init) void {
     const args = init.minimal.args.toSlice(init.arena.allocator()) catch |err|
@@ -56,6 +57,12 @@ pub fn main(init: process.Init) void {
         };
         defer ir.deinit(gpa);
 
+        if (!parsed.options.no_opt) {
+            _ = foldRuns(gpa, &ir) catch |err| switch (err) {
+                error.OutOfMemory => process.fatal("out of memory", .{}),
+            };
+        }
+
         var interpreter = IrInterpreter.init(stdin, stdout);
         interpreter.run(ir) catch |err| handleInterpreterError(err);
     } else {
@@ -83,4 +90,5 @@ test {
     _ = @import("Ir.zig");
     _ = @import("Lowering.zig");
     _ = @import("IrInterpreter.zig");
+    _ = @import("passes/fold_runs.zig");
 }

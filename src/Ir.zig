@@ -9,7 +9,7 @@ const Allocator = @import("std").mem.Allocator;
 const Ir = @This();
 
 /// The instructions of the program, in order.
-instructions: []const Instruction,
+instructions: []Instruction,
 
 /// A single step of the program.
 pub const Instruction = union(enum) {
@@ -20,8 +20,9 @@ pub const Instruction = union(enum) {
 
     /// Adds to the cell under the pointer.
     ///
-    /// Use negative values for subtraction.
-    add: i8,
+    /// The amount wraps, so subtraction is addition of its compliment,
+    /// `-` lowers to `255`.
+    add: u8,
 
     /// Reads a byte into the cell under the pointer.
     read,

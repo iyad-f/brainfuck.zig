@@ -55,7 +55,7 @@ fn lowerNodes(self: *Lowering, nodes: []const Ast.Node) Allocator.Error!void {
             ),
             .decrement => try self._instructions.append(
                 self._allocator,
-                .{ .add = -1 },
+                .{ .add = 255 },
             ),
             .read => try self._instructions.append(
                 self._allocator,
@@ -103,7 +103,7 @@ test "each command lowers to its instructions" {
             .{ .move = 1 },
             .{ .move = -1 },
             .{ .add = 1 },
-            .{ .add = -1 },
+            .{ .add = 255 },
             .read,
             .write,
         },
@@ -133,7 +133,7 @@ test "loop jumps past its body and back" {
             .{ .move = 1 },
             .{ .add = 1 },
             .{ .jump_if_nonzero = 2 },
-            .{ .add = -1 },
+            .{ .add = 255 },
         },
         "+[>+]-",
     );
