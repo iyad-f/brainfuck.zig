@@ -43,6 +43,7 @@ pub fn build(b: *std.Build) void {
 
     const run_bench = b.addRunArtifact(bench_exe);
     run_bench.addFileArg(b.path("examples/mandelbrot.bf"));
+    if (b.args) |args| run_bench.addArgs(args);
 
     const bench_step = b.step("bench", "Run mandelbrot.bf in ReleaseFast");
     bench_step.dependOn(&run_bench.step);
