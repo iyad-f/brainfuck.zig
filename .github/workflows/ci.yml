@@ -34,7 +34,7 @@ jobs:
           pre-commit run --all-files --show-diff-on-failure
 
   test:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v7
       - uses: mlugg/setup-zig@v2
