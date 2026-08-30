@@ -88,7 +88,7 @@ pub fn generate(allocator: Allocator, ir: Ir) Allocator.Error![]u32 {
                 const magnitude = @abs(n);
 
                 if (magnitude <= 0xfff) {
-                    // ass x19, x19, #n, or sub x19, x19, #n moving left.
+                    // add x19, x19, #n, or sub x19, x19, #n moving left.
                     const base: u32 = if (n < 0) 0xd1000273 else 0x91000273;
                     try code.append(allocator, base | (magnitude << 10));
                 } else {
