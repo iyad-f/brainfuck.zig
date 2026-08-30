@@ -24,6 +24,9 @@ pub const Options = struct {
 
     /// Skips the optimization passes, running the ir exactly as lowered.
     no_opt: bool = false,
+
+    /// Compiles the ir to machine code and runs that instead of interpreting.
+    use_jit: bool = false,
 };
 
 /// Errors `parse` can return.
@@ -54,6 +57,8 @@ pub fn parse(args: []const [:0]const u8) ParseError!Parsed {
                 options.use_ir = true
             else if (mem.eql(u8, arg, "--no-opt"))
                 options.no_opt = true
+            else if (mem.eql(u8, arg, "--jit"))
+                options.use_jit = true
             else
                 return error.UnknownOption;
         } else {
@@ -113,5 +118,12 @@ test "no-opt is parsed" {
     try expectParsed(
         .{ .path = "a.bf", .options = .{ .use_ir = true, .no_opt = true } },
         &.{ "bf", "--ir", "--no-opt", "a.bf" },
+    );
+}
+
+test "jit is parsed" {
+    try expectParsed(
+        .{ .path = "a.bf", .options = .{ .use_jit = true } },
+        &.{ "bf", "--jit", "a.bf" },
     );
 }

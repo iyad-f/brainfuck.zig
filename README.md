@@ -14,13 +14,15 @@ Just for fun.
 
 ## Benchmarks
 
-Measured on an Apple M4 with `zig build bench [-- flags]`, running `examples/mandelbrot.bf`.
+Measured on an Apple M4, running `examples/mandelbrot.bf`.
 
-| Engine                           | Time | Speedup |
-| -------------------------------- | ---- | ------- |
-| ast interpreter                  | 9.2s | 1.0x    |
-| ir interpreter (`--ir --no-opt`) | 7.6s | 1.2x    |
-| + `fold_runs` (`--ir`)           | 2.8s | 3.3x    |
+| Engine                       | Command                             | Time  | vs. ast |
+| ---------------------------- | ----------------------------------- | ----- | ------- |
+| ast interpreter              | `zig build bench`                   | 9.2s  | 1.0x    |
+| ir interpreter               | `zig build bench -- --ir --no-opt`  | 7.6s  | 1.2x    |
+| ir interpreter + `fold_runs` | `zig build bench -- --ir`           | 2.8s  | 3.3x    |
+| jit                          | `zig build bench -- --jit --no-opt` | 2.3s  | 4.0x    |
+| jit + `fold_runs`            | `zig build bench -- --jit`          | 0.56s | 16.4x   |
 
 ## License
 

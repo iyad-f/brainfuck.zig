@@ -12,6 +12,7 @@ const Interpreter = @import("Interpreter.zig");
 const Lowering = @import("Lowering.zig");
 const IrInterpreter = @import("IrInterpreter.zig");
 const foldRuns = @import("passes/fold_runs.zig").foldRuns;
+const Jit = @import("Jit.zig");
 
 pub fn main(init: process.Init) void {
     const args = init.minimal.args.toSlice(init.arena.allocator()) catch |err|
@@ -51,7 +52,7 @@ pub fn main(init: process.Init) void {
     var stdout_writer = Io.File.stdout().writer(io, &stdout_buffer);
     const stdout = &stdout_writer.interface;
 
-    if (parsed.options.use_ir) {
+    if (parsed.options.use_ir or parsed.options.use_jit) {
         var ir = Lowering.lower(gpa, ast) catch |err| switch (err) {
             error.OutOfMemory => process.fatal("out of memory", .{}),
         };
@@ -63,21 +64,28 @@ pub fn main(init: process.Init) void {
             };
         }
 
-        var interpreter = IrInterpreter.init(stdin, stdout);
-        interpreter.run(ir) catch |err| handleInterpreterError(err);
+        if (parsed.options.use_jit) {
+            var jit = Jit.init(gpa, stdin, stdout);
+            jit.run(ir) catch |err| handleRunError(err);
+        } else {
+            var interpreter = IrInterpreter.init(stdin, stdout);
+            interpreter.run(ir) catch |err| handleRunError(err);
+        }
     } else {
         var interpreter = Interpreter.init(stdin, stdout);
-        interpreter.run(ast) catch |err| handleInterpreterError(err);
+        interpreter.run(ast) catch |err| handleRunError(err);
     }
 }
 
-/// Reports a run error and exits.
-fn handleInterpreterError(err: (Interpreter.Error || IrInterpreter.Error)) noreturn {
+/// Reports why a program could not be run and exits.
+fn handleRunError(err: (Interpreter.Error || IrInterpreter.Error || Jit.Error)) noreturn {
     switch (err) {
         error.PointerOverflow => process.fatal("the pointer moved past the last cell", .{}),
         error.PointerUnderflow => process.fatal("the pointer moved before the first cell", .{}),
         error.ReadFailed => process.fatal("reading input failed", .{}),
         error.WriteFailed => process.fatal("writing output failed", .{}),
+        error.OutOfMemory => process.fatal("out of memory", .{}),
+        else => process.fatal("cannot map executable memory: {t}", .{err}),
     }
 }
 
@@ -91,4 +99,9 @@ test {
     _ = @import("Lowering.zig");
     _ = @import("IrInterpreter.zig");
     _ = @import("passes/fold_runs.zig");
+    _ = @import("codegen.zig");
+    _ = @import("codegen/aarch64.zig");
+    _ = @import("JitBuffer.zig");
+    _ = @import("Jit/runtime.zig");
+    _ = @import("Jit.zig");
 }
