@@ -12,6 +12,22 @@ A Brainfuck JIT compiler written in Zig.
 
 Just for fun.
 
+## Usage
+
+Builds for aarch64 macos only.
+
+```sh
+zig build --release=fast
+zig-out/bin/bf examples/mandelbrot.bf
+```
+
+| Flag       | Effect                             |
+| ---------- | ---------------------------------- |
+| *(none)*   | walk the ast                       |
+| `--ir`     | lower to an ir and interpret that  |
+| `--jit`    | compile to machine code and run it |
+| `--no-opt` | skip the optimization passes       |
+
 ## Benchmarks
 
 Measured on an Apple M4, running `examples/mandelbrot.bf`.
