@@ -18,10 +18,12 @@ pub fn main(init: process.Init) void {
     const args = init.minimal.args.toSlice(init.arena.allocator()) catch |err|
         process.fatal("cannot read arguments: {t}", .{err});
 
+    const usage = "usage: bf [--ir] [--jit] [--no-opt] <file.bf>";
+
     const parsed = cli.parse(args) catch |err| switch (err) {
-        error.MissingPath => process.fatal("usage: bf [--ir] <file.bf>", .{}),
-        error.UnknownOption => process.fatal("unknown option", .{}),
-        error.UnexpectedArgument => process.fatal("unexpected argument", .{}),
+        error.MissingPath => process.fatal("{s}", .{usage}),
+        error.UnknownOption => process.fatal("unknown option\n{s}", .{usage}),
+        error.UnexpectedArgument => process.fatal("unexpected argument\n{s}", .{usage}),
     };
     const path = parsed.path;
 
