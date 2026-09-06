@@ -42,7 +42,7 @@ pub fn init(allocator: Allocator, reader: *Io.Reader, writer: *Io.Writer) Jit {
     };
 }
 
-/// Compiler `ir` to machine code and runs it to completion.
+/// Compiles `ir` to machine code and runs it to completion.
 ///
 /// Output is flushed before returning, including when the program fails.
 pub fn run(self: *Jit, ir: Ir) Error!void {
